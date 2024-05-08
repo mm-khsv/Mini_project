@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include<fstream>
 using namespace std;
 
 class Users {
@@ -26,10 +27,18 @@ public:
     }
 };
 class Students : public Users {
+private:
+    string listId;
+public:
+    string returnId (){
+        return listId;
+    }
+    void updateId( string givenId ){
+        listId = givenId;
+    }
 
 };
 class Teachers : public Users {
-
 };
 class Questions {
 public:
@@ -113,6 +122,8 @@ public:
         getline(cin, name);
         cout << "What type of questions your exam have: all Test(1), all Writing(2) or Both(3), enter the proper number: "<<endl;
         cin >> enterType;
+        cout<<"enter the number of the student list."<<endl;
+        //*cin>>list;
         cin.ignore();
 
         if (enterType==1) {
@@ -176,6 +187,7 @@ int main() {
     studentsList[0].getData("sara", "111");
     studentsList[1].getData("ali", "215");
     studentsList[2].getData("mmd", "639");
+    studentsList[3].getData("sana", "693");
 
     cout << "Enter the username: "<<endl;
     getline(cin, username);
@@ -208,12 +220,12 @@ int main() {
     if (isTeacher) {
         string command;
         while (true) {
-            cout << "Enter a command (create, display, bye): "<<endl;
+            cout << "Enter a command (create, display ,new list, add one, see lists, bye): " << endl;
             getline(cin, command);
 
             if (command[0] == 'c') {
                 int numQuestions;
-                cout << "Enter number of questions: "<<endl;
+                cout << "Enter number of questions: " << endl;
                 cin >> numQuestions;
                 cin.ignore();
 
@@ -223,6 +235,60 @@ int main() {
             } else if (command[0] == 'd') {
                 cout << "Displaying all exams..." << endl;
                 // exam.displayExam();
+            } else if (command[0] == 'n') {
+                int tedad;
+                string listId;
+                cout << "Enter listid :";
+                getline(cin, listId);
+                cout << "With how many student do you want to creat?" << endl;
+                cin >> tedad;
+                string id[tedad];
+                for (int i = 0; i < tedad; i++) {
+                    getline(cin >> ws, id[i]);
+                }
+                for (int j = 0; j < tedad; j++) {
+                    for (int i = 0; i < 9; i++) {
+                        if (studentsList[i].getPassWord() == id[j]) {
+                            studentsList[i].updateId(listId);
+                        }
+                    }
+                }
+
+            } else if (command[0] == 'a') {
+                int t;
+                string list;
+                cout << "Enter listid :";
+                getline(cin, list);
+                cout << "How many students do you want to add?" << endl;
+                cin >> t;
+                string id[t];
+                for (int i = 0; i < t; i++) {
+                    getline(cin >> ws, id[i]);
+                }
+                for (int i = 0; i < 9; i++) {
+                    for (int j = 0; j < t; j++) {
+                        if (studentsList[i].getPassWord() == id[j]) {
+                            studentsList[i].updateId(list);
+                        }
+                    }
+                }
+            } else if (command[0] == 's') {
+
+                int counter = 0;
+                string listedNames, listedPass, listId;
+
+                cout << "Enter the listid that you want to see" << endl;
+                getline(cin, listId);
+                ofstream file1("list.txt",ios::app | ios::out);
+                file1<<listId;
+                for (int i = 0; i < 9; i++) {
+                    if (studentsList[i].returnId() == listId) {
+                        file1<<studentsList[i].getUserName() << " ";
+                        file1<<studentsList[i].getPassWord() << endl;
+                        cout << studentsList[i].getUserName() << " ";
+                        cout << studentsList[i].getPassWord() << endl;
+                    }
+                }
             } else if (command[0] == 'b') {
                 cout << "Goodbye!" << endl;
                 exit(0);
@@ -231,6 +297,6 @@ int main() {
             }
         }
     }
-
     return 0;
 }
+
