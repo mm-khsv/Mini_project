@@ -33,8 +33,10 @@ public:
     }
 };
 class Students: public Users {
-private: string listId;
-public: string returnId() {
+private:
+ string listId;
+public: 
+string returnId() {
         return listId;
     }
     void updateId(string givenId) {
@@ -289,12 +291,14 @@ int main() {
             } else if (command == 3) {
                 int tedad;
                 string listId;
-                cout << "Enter listid :" << endl;
+                cout << "Creating new list" << endl;
+                cout << "Enter listId (Includes both number and text or alone) :" << endl;
                 getline(cin >> ws, listId);
-                cout << "With how many student do you want to creat?" << endl;
+                cout << "What is the maximum number of your list?" << endl;
                 cin >> tedad;
                 string id[tedad];
                 for (int i = 0; i < tedad; i++) {
+                	cout << "Enter the password of student " << i+1 << endl;
                     getline(cin >> ws, id[i]);
                 }
                 for (int j = 0; j < tedad; j++) {
@@ -308,12 +312,14 @@ int main() {
             } else if (command == 4) {
                 int t;
                 string list;
-                cout << "Enter listid :";
-                getline(cin, list);
+                cout << "Adding new student to the existed list" << endl;
+                cout << "Enter the listId that you want to add student to :" << endl;
+                getline(cin >> ws, list);
                 cout << "How many students do you want to add?" << endl;
                 cin >> t;
                 string id[t];
                 for (int i = 0; i < t; i++) {
+                	  cout << "Enter the password of student " << i+1 << endl;
                     getline(cin >> ws, id[i]);
                 }
                 for (int i = 0; i < 4; i++) {
@@ -324,13 +330,13 @@ int main() {
                     }
                 }
             } else if (command == 5) {
-                int counter = 0;
-                string listedNames, listedPass, listId;
-
-                cout << "Enter the listid that you want to see" << endl;
-                getline(cin, listId);
+                string listId;
+                 cout << "Displaying lists" << endl;
+                cout << "Enter the listId that you want to see" << endl;
+                getline(cin >> ws, listId);
                 ofstream file1("list.txt", ios::app | ios::out);
                 file1 << listId;
+                cout << "Student list of " << listId << " :" << endl;
                 for (int i = 0; i < 4; i++) {
                     if (studentsList[i].returnId() == listId) {
                         file1 << studentsList[i].getUserName() << " ";
