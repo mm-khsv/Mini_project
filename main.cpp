@@ -346,7 +346,7 @@ int main() {
                     }
                 }
             } else if (command == 6) {
-                cout << "hope see you soon :)" << endl;
+                cout << "Hope to see you soon :)" << endl;
                 exit(0);
             } else {
                 cout << "Invalid command. Please try again." << endl;
