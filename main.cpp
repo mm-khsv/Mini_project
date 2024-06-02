@@ -6,6 +6,16 @@
 
 #include <vector>
 
+
+#include <fstream>
+
+
+#include "json.hpp"
+
+
+#include <filesystem>
+
+
 using namespace std;
 
 class Users {
@@ -34,9 +44,9 @@ public:
 };
 class Students: public Users {
 private:
- string listId;
-public: 
-string returnId() {
+    string listId;
+public:
+    string returnId() {
         return listId;
     }
     void updateId(string givenId) {
@@ -46,7 +56,8 @@ string returnId() {
 };
 class Teachers: public Users {};
 class Questions {
-public: string text;
+public:
+    string text;
     string type;
     string answer;
     string options[4];
@@ -111,7 +122,7 @@ class Exams {
     Questions * questions;
     int numQuestions, enterType, id, time;
     bool allTest, allWriting;
-    string name, creator;
+    string name, creator,list;
 public:
     Exams(int numQuestions, int time, string creator) {
         this -> numQuestions = numQuestions;
@@ -133,6 +144,9 @@ public:
         cout << "What Type of Questions your Exam Has:\n1.All Tests\n2.All Writing\n3.Combinatorial\n";
         cin >> enterType;
         cin.ignore();
+        cout<<"For which list of students are you creating this exam??";
+        getline(cin, list);
+
         // Asking the type of questions will be useful if the exam only consists of tests or written questions
         //no need to ask for every question what is the type of this question
         if (enterType == 1) {
@@ -180,6 +194,59 @@ public:
             cout << endl;
         }
     }
+    void saveExamJSON() {
+        // Read the json data from the existing file
+        ifstream examsFile("exams.json");
+        nlohmann::json jsonData;
+        examsFile.seekg(0, ios::end);
+        //check if the file is empty fill the array of json data with empty array
+        if (examsFile.tellg() == 0) {
+            jsonData = nlohmann::json::array();
+        } else {
+            examsFile.seekg(0, ios::beg);
+            examsFile >> jsonData;
+        }
+
+        // Create a JSON object to save the new exams
+        nlohmann::json examData;
+        examData["id"] =id;
+        examData["name"] = name;
+        examData["numQuestions"] = numQuestions;
+        examData["creator"] = creator;
+
+        // Create a JSON array to save new exmas`s question datas
+        nlohmann::json questionsArray;
+        for (int i = 0; i < numQuestions; i++) {
+            nlohmann::json questionData;
+            questionData["text"] = questions[i].text;
+            questionData["type"] = questions[i].type;
+            questionData["answer"] = questions[i].answer;
+
+            // if question type is test
+            if (questions[i].type == "test") {
+                nlohmann::json optionsArray;
+                for (int j = 0; j < 4; j++) {
+                    optionsArray.push_back(questions[i].options[j]);
+                }
+                questionData["options"] = optionsArray;
+            }
+
+            questionsArray.push_back(questionData);
+        }
+
+        examData["questions"] = questionsArray;
+        examData["time"]=time;
+        examData["list"]=list;
+
+        // Add the new exam to the JSON data
+        jsonData.push_back(examData);
+
+        // update the file content
+        ofstream examsFileOut("exams.json");
+        examsFileOut << jsonData.dump(4) << std::endl;
+
+        cout << "Exam saved successfully to exams.json" << endl;
+    }
 };
 int Users::count = 0;
 int Exams::count = 0;
@@ -188,7 +255,7 @@ int main() {
     string username;
     string pass;
     int trying = 0;
-    vector < Exams > exams;
+    vector<Exams> exams;
     string test[4];
     int loginedId, count, key;
     bool isTeacher;
@@ -263,8 +330,10 @@ int main() {
     if (isTeacher) {
         while (true) {
             cout << endl << "enter proper command number from list bellow" << endl;
-            cout << "1.Create New Exam\n2.Display all Exams\n3.Create New List\n4.Add Students To The Existing List\n5.Display Lists" <<
-                 "\n6.Exit The Program" << endl;
+            cout
+                    << "1.Create New Exam\n2.Display all Exams\n3.Create New List\n4.Add Students To The Existing List\n5.Display Lists"
+                    <<
+                    "\n6.Exit The Program" << endl;
             cout << "command : ";
             cin >> command;
             cout << endl;
@@ -279,27 +348,66 @@ int main() {
                 Exams exam(numQuestions, time, username);
                 exam.createExam();
                 exams.push_back(exam);
+                exam.saveExamJSON();
 
             } else if (command == 2) {
-                if (!exams.empty()) {
-                    cout << "Displaying all exams..." << endl;
-                    for (int i = 0; i < Exams::returnCount(); i++) {
-                        exams[i].showExam();
+                std::ifstream examsFile("exams.json");
+                if (examsFile.is_open()) {
+                    nlohmann::json examsData = nlohmann::json::parse(examsFile);
+
+                    for (const auto &examData: examsData) {
+                        std::string name = examData["name"];
+                        int numQuestions = examData["numQuestions"];
+
+                        cout << "Exam name: " << name << ", number of questions: " << numQuestions << endl;
+
+                        nlohmann::json questionsArray = examData["questions"];
+                        for (const auto &questionData: questionsArray) {
+                            std::string text = questionData["text"];
+                            std::string type = questionData["type"];
+                            std::string answer = questionData["answer"];
+
+                            cout << "Question text: " << text << ", type: " << type << ", answer: " << answer << endl;
+
+                            if (type == "test") {
+                                const auto &optionsArray = questionData["options"];
+                                cout << "Options: ";
+                                for (const auto &option: optionsArray) {
+                                    cout << option << " ";
+                                }
+                                cout << endl;
+                            }
+                        }
+                        cout << endl;
                     }
                 }
-
             } else if (command == 3) {
-                int tedad;
+                ifstream ListsFile("lists.json");
+                nlohmann::json jsonData;
+                ListsFile.seekg(0, ios::end);
+                //check if the file is empty
+                if (ListsFile.tellg() == 0) {
+                    jsonData = nlohmann::json::array();
+                } else {
+                    ListsFile.seekg(0, ios::beg);
+                    ListsFile >> jsonData;
+                }
+
                 string listId;
                 cout << "Creating new list" << endl;
                 cout << "Enter listId (Includes both number and text or alone) :" << endl;
                 getline(cin >> ws, listId);
                 cout << "What is the maximum number of your list?" << endl;
+                int tedad;
                 cin >> tedad;
                 string id[tedad];
+
+                nlohmann::json ListData;
+                ListData[listId] = nlohmann::json::array();
                 for (int i = 0; i < tedad; i++) {
-                	cout << "Enter the password of student " << i+1 << endl;
+                    cout << "Enter the password of student " << i + 1 << endl;
                     getline(cin >> ws, id[i]);
+                    ListData[listId].push_back(id[i]);
                 }
                 for (int j = 0; j < tedad; j++) {
                     for (int i = 0; i < 4; i++) {
@@ -309,40 +417,61 @@ int main() {
                     }
                 }
 
-            } else if (command == 4) {
-                int t;
-                string list;
+                jsonData.push_back(ListData);
+                //update the content of lists file
+                ofstream examsFileOut("lists.json");
+                examsFileOut << jsonData.dump(4) << std::endl;
+            }  else if (command == 4) {
+                string listId;
                 cout << "Adding new student to the existed list" << endl;
                 cout << "Enter the listId that you want to add student to :" << endl;
-                getline(cin >> ws, list);
-                cout << "How many students do you want to add?" << endl;
-                cin >> t;
-                string id[t];
-                for (int i = 0; i < t; i++) {
-                	  cout << "Enter the password of student " << i+1 << endl;
-                    getline(cin >> ws, id[i]);
-                }
-                for (int i = 0; i < 4; i++) {
-                    for (int j = 0; j < t; j++) {
-                        if (studentsList[i].getPassWord() == id[j]) {
-                            studentsList[i].updateId(list);
+                getline(cin >> ws, listId);
+
+                ifstream ListsFile("lists.json");
+                nlohmann::json jsonData;
+                ListsFile >> jsonData;
+
+                bool listFound = false;
+                for (auto& list : jsonData) {
+                    if (list.find(listId)!= list.end()) {
+                        listFound = true;
+                        cout << "Enter the password of the new student:" << endl;
+                        string newPassword;
+                        getline(cin >> ws, newPassword);
+                        list[listId].push_back(newPassword);
+
+                        for (int i = 0; i < 4; i++) {
+                            if (studentsList[i].getPassWord() == newPassword) {
+                                studentsList[i].updateId(listId);
+                            }
                         }
+                        break;
                     }
                 }
+
+                if (!listFound) {
+                    cout << "List not found. Please try again." << endl;
+                } else {
+                    ofstream examsFileOut("lists.json");
+                    //update the content of lists file
+                    examsFileOut << jsonData.dump(4) << std::endl;
+                    cout << "Student added successfully to the list." << endl;
+                }
             } else if (command == 5) {
-                string listId;
-                 cout << "Displaying lists" << endl;
-                cout << "Enter the listId that you want to see" << endl;
-                getline(cin >> ws, listId);
-                ofstream file1("list.txt", ios::app | ios::out);
-                file1 << listId;
-                cout << "Student list of " << listId << " :" << endl;
-                for (int i = 0; i < 4; i++) {
-                    if (studentsList[i].returnId() == listId) {
-                        file1 << studentsList[i].getUserName() << " ";
-                        file1 << studentsList[i].getPassWord() << endl;
-                        cout << studentsList[i].getUserName() << " ";
-                        cout << studentsList[i].getPassWord() << endl;
+                ifstream ListsFile("lists.json");
+                nlohmann::json jsonData;
+                ListsFile >> jsonData;
+
+                cout << "Displaying lists:" << endl;
+                for (auto& list : jsonData) {
+                    for (auto& element : list.items()) {
+                        string listId = element.key();
+                        cout << "List : " << listId << endl;
+                        cout << "Students in this list:" << endl;
+                        for (auto& student : element.value()) {
+                            cout << student << endl;
+                        }
+                        cout << endl;
                     }
                 }
             } else if (command == 6) {
