@@ -383,16 +383,21 @@ int main() {
                 }
             } else if (command == 3) {
                 ifstream ListsFile("lists.json");
+                //  if file doesn't exist, create it
+                if (!ListsFile.good()) {
+                    ofstream listsFileOut("lists.json");
+                    listsFileOut.close();
+                }
+                ListsFile.open("lists.json");
                 nlohmann::json jsonData;
                 ListsFile.seekg(0, ios::end);
-                //check if the file is empty
                 if (ListsFile.tellg() == 0) {
+                    // File is empty, create a new JSON array
                     jsonData = nlohmann::json::array();
                 } else {
                     ListsFile.seekg(0, ios::beg);
                     ListsFile >> jsonData;
                 }
-
                 string listId;
                 cout << "Creating new list" << endl;
                 cout << "Enter listId (Includes both number and text or alone) :" << endl;
@@ -479,6 +484,27 @@ int main() {
                 exit(0);
             } else {
                 cout << "Invalid command. Please try again." << endl;
+            }
+        }
+    }
+    //the logged in user is student
+    else{
+        while(true){
+            cout << endl << "enter proper command number from list bellow" << endl;
+            cout
+                    << "1.See availble Exams\n2.Refer to the history of your exams and register objections to the grade\n3.exit";
+            cout <<endl<< "command : ";
+            cin >> command;
+            cout<<endl;
+            if(command==1){
+                //exams to be done
+            }
+            if(command==2){
+                //history and protest
+            }
+            else if(command==3){
+                cout<<"Hope To See You Again,Bye:)";
+                exit(0);
             }
         }
     }
