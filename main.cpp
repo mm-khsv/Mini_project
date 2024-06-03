@@ -16,6 +16,7 @@
 #include <filesystem>
 
 #include<chrono>
+
 using namespace std;
 
 class Users {
@@ -602,7 +603,7 @@ int main() {
                                 cout << "Time: " << exam["time"] << " minutes" << endl;
                                 cout << "Questions:" << endl;
                                 auto start_time = std::chrono::steady_clock::now();
-                                auto timer = std::chrono::steady_clock::now()-start_time;
+
                                 for (const auto &question: exam["questions"]) {
                                     cout << "  - " << question["text"] << endl;
                                     if (question["type"] == "test") {
@@ -612,9 +613,22 @@ int main() {
                                         }
                                     }
                                     break;
-                                }
+                                } auto timer = std::chrono::steady_clock::now()-start_time;
                                 double timing = std::chrono::duration<double>(timer).count();
-                                std::cout<<timing<<endl;
+                                if(timing >= time){
+                                    cout<<"Your time is over \nExam finished good luck"<<endl;
+                                    cout<<"Your passed time is :"<<" ";
+                                    std::cout<<timing<<endl;
+                                    exit(0);
+                                } if(timing < time){
+                                    cout<<"Exam finished good luck"<<endl;
+                                    cout<<"You spend ";
+                                    std::cout<<timing<<" ";
+                                    cout<<"time"<<endl;
+                                    time-=timing;
+                                    cout<<"Your remainig time is : "<<time;
+                                    exit(0);
+                                }
                             }
                         }
                     } else {
