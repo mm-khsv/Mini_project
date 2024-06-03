@@ -121,7 +121,7 @@ class Exams {
     static int count;
     Questions * questions;
     int numQuestions, enterType, id, time;
-    bool allTest, allWriting;
+    bool allTest, allWriting,display;
     string name, creator,list;
 public:
     Exams(int numQuestions, int time, string creator) {
@@ -146,7 +146,9 @@ public:
         cin.ignore();
         cout<<"For which list of students are you creating this exam??";
         getline(cin, list);
-
+        cout<<"you want to display the exam write after creating it on students panel??(1-yes ,0-No)\n"
+              "you can change the setting later so by choosing the command 6 on your panel";
+        cin>>display;
         // Asking the type of questions will be useful if the exam only consists of tests or written questions
         //no need to ask for every question what is the type of this question
         if (enterType == 1) {
@@ -181,8 +183,8 @@ public:
         }
 
     }
-    //when showExam called some datas about exam will be shown and after that on each object of questions
-    // the display method will print the question datas such as the 4 options the question text and answer....
+    //when showExam called some datas about "exam" will be shown and after that on each object of questions
+    // the display method will print the "question" datas such as the 4 options ,the question text and answer....
     void showExam() {
         cout << endl << endl << name << " : " << endl;
         cout << "Totall Number Of Questions : " << numQuestions << endl;
@@ -195,8 +197,15 @@ public:
         }
     }
     void saveExamJSON() {
-        // Read the json data from the existing file
         ifstream examsFile("exams.json");
+        //  if file doesn't exist, create it
+        if (!examsFile.good()) {
+            ofstream examsFile("exams.json");
+            examsFile.close();
+        }
+        examsFile.open("exams.json");
+
+        // Read the json data from the existing file
         nlohmann::json jsonData;
         examsFile.seekg(0, ios::end);
         //check if the file is empty fill the array of json data with empty array
@@ -213,6 +222,7 @@ public:
         examData["name"] = name;
         examData["numQuestions"] = numQuestions;
         examData["creator"] = creator;
+        examData["display"]=display;
 
         // Create a JSON array to save new exmas`s question datas
         nlohmann::json questionsArray;
@@ -266,15 +276,15 @@ int main() {
     int firstOrder;
     //Default users defined here
     Teachers teacherList[3];
-    teacherList[0].getData("tanaz", "kjnv");
-    teacherList[1].getData("mari", "785");
-    teacherList[2].getData("tina", "852");
+    teacherList[0].getData("tanaz", "kjnv");//id=1
+    teacherList[1].getData("mari", "785");//id=2
+    teacherList[2].getData("tina", "852");//id=3
 
     Students studentsList[4];
-    studentsList[0].getData("sara", "111");
-    studentsList[1].getData("ali", "215");
-    studentsList[2].getData("mmd", "639");
-    studentsList[3].getData("sana", "693");
+    studentsList[0].getData("sara", "111"); // id=4
+    studentsList[1].getData("ali", "215");//id=5
+    studentsList[2].getData("mmd", "639");//id=6
+    studentsList[3].getData("sana", "693");//id=7
 
     //user can attempt to login for 3 times the last time if username and password didnt match the program will finish.
     while (trying < 3) {
@@ -326,14 +336,14 @@ int main() {
         exit(0);
     }
     cout << endl;
-    //here is where the teacher panel displays and the while loop will finish in the case user enter command 6
+    //here is where the teacher panel displays and the while loop will finish in the case user enter command 8
     if (isTeacher) {
         while (true) {
             cout << endl << "enter proper command number from list bellow" << endl;
             cout
                     << "1.Create New Exam\n2.Display all Exams\n3.Create New List\n4.Add Students To The Existing List\n5.Display Lists"
                     <<
-                    "\n6.Exit The Program" << endl;
+                    "\n6.change the display settings of exams\n7.display the history of exams\n8.Exit The Program" << endl;
             cout << "command : ";
             cin >> command;
             cout << endl;
@@ -479,7 +489,54 @@ int main() {
                         cout << endl;
                     }
                 }
-            } else if (command == 6) {
+            }
+            else if(command==6){
+                string name;
+                cout<<endl<<"Which exam display settings do you want to change?";
+                cin>>name;
+
+                // Read the examm file
+                ifstream examsFile("exams.json");
+                nlohmann::json examsJson;
+                examsFile >> examsJson;
+                examsFile.close();
+                bool examFound = false;
+                for (auto& exam : examsJson) {
+                    if (exam["name"] == name) {
+                        examFound = true;
+                        // Update the display property
+                        cout << "Enter new display setting (true/false): ";
+                        bool newDisplay;
+                        cin >> newDisplay;
+                        exam["display"] = newDisplay;
+                        break;
+                    }
+                }
+
+                if (!examFound) {
+                    cout << "Exam not found." << endl;
+                }
+                // update file
+                ofstream updatedExamsFile("exams.json");
+                updatedExamsFile << examsJson.dump(4)<<endl;
+                updatedExamsFile.close();
+
+                cout << "Exam display settings updated successfully." << endl;
+
+            }else if(command==7){
+                //display the history
+                ifstream file("exams.json");
+                nlohmann::json jsonData;
+                file >> jsonData;
+                file.close();
+
+                for (auto& exam : jsonData) {
+                    if (exam["creator"] == username) {
+                        std::cout << "Exam name: " << exam["name"] << std::endl;
+                    }
+                }
+            }
+            else if (command == 8) {
                 cout << "Hope to see you soon :)" << endl;
                 exit(0);
             } else {
@@ -497,10 +554,110 @@ int main() {
             cin >> command;
             cout<<endl;
             if(command==1){
+                int examnum;
+                string selectedExam;
+                string studentId = to_string(loginedId);
                 //exams to be done
+                ifstream examsFile("exams.json");
+                nlohmann::json exams;
+                examsFile >> exams;
+                examsFile.close();
+
+                ifstream listsFile("lists.json");
+                nlohmann::json lists;
+                listsFile >> lists;
+                listsFile.close();
+
+                string foundList;
+                for (const auto& list : lists) {
+                    for (const auto& item : list.items()) {
+                        for (const auto& id : item.value()) {
+                            if (id == studentId) {
+                                foundList = item.key();
+                                break;
+                            }
+                        }
+                    }
+                }
+                vector<string>availbleExams;
+                for (const auto& exam : exams) {
+                    if (exam["list"] == foundList and exam["display"]==true) {
+                        availbleExams.push_back(exam["name"]);
+                    }
+                }
+                for(int i=0;i<availbleExams.size();i++){
+                    cout<<"Displaying availble Exams"<<endl;
+                    cout << "Exam " <<i+1<<": " << availbleExams[i] << endl;
+                }
+                if(!availbleExams.empty()) {
+                    cout << "enter the number of exam to display the questions";
+                    cin >> examnum;
+                    if (examnum > 0 && examnum <= availbleExams.size()) {
+                        selectedExam = availbleExams[examnum - 1];
+                        //displaying but the time is not fixed yet:(
+                        for (const auto &exam: exams) {
+                            if (exam["name"] == selectedExam) {
+                                cout << "Exam Name: " << exam["name"] << endl;
+                                cout << "Creator: " << exam["creator"] << endl;
+                                cout << "Time: " << exam["time"] << " minutes" << endl;
+                                cout << "Questions:" << endl;
+                                for (const auto &question: exam["questions"]) {
+                                    cout << "  - " << question["text"] << endl;
+                                    if (question["type"] == "test") {
+                                        cout << "    Options:" << endl;
+                                        for (const auto &option: question["options"]) {
+                                            cout << "      - " << option << endl;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        cout << "Invalid exam number. Please try again." << endl;
+                    }
+                }
             }
             if(command==2){
                 //history and protest
+                string studentId = to_string(loginedId);
+
+                ifstream examsFile("exams.json");
+                nlohmann::json exams;
+                examsFile >> exams;
+                examsFile.close();
+
+                ifstream listsFile("lists.json");
+                nlohmann::json lists;
+                listsFile >> lists;
+                listsFile.close();
+
+                string foundList;
+                for (const auto& list : lists) {
+                    for (const auto& item : list.items()) {
+                        for (const auto& id : item.value()) {
+                            if (id == studentId) {
+                                foundList = item.key();
+                                break;
+                            }
+                        }
+                    }
+                }
+                vector<string>historyExams;
+                for (const auto& exam : exams) {
+                    if (exam["list"] == foundList) {
+                        historyExams.push_back(exam["name"]);
+                    }
+                }
+                if(!historyExams.empty()) {
+                    for (int i = 0; i < historyExams.size(); i++) {
+                        cout << "Displaying history of exams" << endl;
+                        cout << "Exam " << i + 1 << ": " << historyExams[i] << endl;
+                    }
+                }
+                else{
+                    cout<<"history is empty";
+                }
             }
             else if(command==3){
                 cout<<"Hope To See You Again,Bye:)";
