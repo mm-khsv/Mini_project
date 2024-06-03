@@ -15,7 +15,7 @@
 
 #include <filesystem>
 
-
+#include<chrono>
 using namespace std;
 
 class Users {
@@ -544,7 +544,7 @@ int main() {
             }
         }
     }
-    //the logged in user is student
+        //the logged in user is student
     else{
         while(true){
             cout << endl << "enter proper command number from list bellow" << endl;
@@ -601,6 +601,8 @@ int main() {
                                 cout << "Creator: " << exam["creator"] << endl;
                                 cout << "Time: " << exam["time"] << " minutes" << endl;
                                 cout << "Questions:" << endl;
+                                auto start_time = std::chrono::steady_clock::now();
+                                auto timer = std::chrono::steady_clock::now()-start_time;
                                 for (const auto &question: exam["questions"]) {
                                     cout << "  - " << question["text"] << endl;
                                     if (question["type"] == "test") {
@@ -611,6 +613,8 @@ int main() {
                                     }
                                     break;
                                 }
+                                double timing = std::chrono::duration<double>(timer).count();
+                                std::cout<<timing<<endl;
                             }
                         }
                     } else {
