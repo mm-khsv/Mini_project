@@ -11,6 +11,10 @@
 
 #include <filesystem>
 
+#include <chrono>
+
+#include <ctime>
+
 using namespace std;
 
 class Users {
@@ -115,12 +119,13 @@ public:
 class Exams {
     static int count;
     Questions * questions;
-    int numQuestions, enterType, id, time;
+    int numQuestions, enterType, id;
     bool allTest, allWriting,display;
     string name, creator,list;
     float totallScore;
+	float time;
 public:
-    Exams(int numQuestions, int time, string creator) {
+    Exams(int numQuestions, float time, string creator) {
         this -> numQuestions = numQuestions;
         questions = new Questions[numQuestions];
         this -> time = time;
@@ -140,14 +145,14 @@ public:
         cout << "What Type of Questions your Exam Has:\n1.All Tests\n2.All Writing\n3.Combinatorial\n";
         cin >> enterType;
         cin.ignore();
-        cout<<"For which list of students are you creating this exam??";
+        cout << "For which list of students are you creating this exam??";
         getline(cin, list);
-        cout<<"you want to display the exam write after creating it on students panel??(1-yes ,0-No)\n"
+        cout << "you want to display the exam write after creating it on students panel??(1-yes ,0-No)\n"
               "you can change the setting later so by choosing the command 6 on your panel";
-        cin>>display;
+        cin >> display;
         cin.ignore();
-        cout<<"what is the totall Score of this exam";
-        cin>>totallScore;
+        cout << "what is the totall Score of this exam";
+        cin >> totallScore;
         cin.ignore();
         // Asking the type of questions will be useful if the exam only consists of tests or written questions
         //no need to ask for every question what is the type of this question
@@ -246,8 +251,8 @@ public:
         }
 
         examData["questions"] = questionsArray;
-        examData["time"]=time;
-        examData["list"]=list;
+        examData["time"] = time;
+        examData["list"] = list;
 
 
         bool sameName=false;
@@ -267,7 +272,7 @@ public:
             cout << "Exam saved successfully to exams.json" << endl;
         }
         else{
-            cout<<"exma didnt save beacause another exam with the same name exit ,try with anothe name";
+            cout << "exma didnt save beacause another exam with the same name exit ,try with anothe name";
         }
     }
 };
@@ -277,16 +282,17 @@ int Exams::count = 0;
 int main() {
     string username;
     string pass;
+    string test[4];
+    string examType;
     int trying;
     vector<Exams> exams;
-    string test[4];
+    int command;
+    float time;
+    int firstOrder;
     int loginedId, count, key;
     bool isTeacher;
-    string examType;
     bool isValid;
-    int command;
-    int time;
-    int firstOrder;
+
     //Default users defined here
     Teachers teacherList[3];
     teacherList[0].getData("tanaz", "kjnv");//id=1
@@ -413,7 +419,7 @@ int main() {
                 }
                 else{
                     //in the case program cant open the exams.json file this line will print.
-                    cout<<"some thing wrong happened about the source of exams,Try Again Later";
+                    cout << "some thing wrong happened about the source of exams,Try Again Later";
                     continue;
                 }
             } else if (command == 3) {
@@ -540,8 +546,8 @@ int main() {
             }
             else if(command==6){
                 string name;
-                cout<<endl<<"Which exam display settings do you want to change?";
-                cin>>name;
+                cout << endl << "Which exam display settings do you want to change?";
+                cin >> name;
 
                 // Read the examm file
                 ifstream examsFile("exams.json");
@@ -574,8 +580,8 @@ int main() {
             else if(command==7){
                 string examName;
                 //display the students answears
-                cout<<"For which test do you want to see students' answers?";
-                cin>>examName;
+                cout << "For which test do you want to see students' answers?";
+                cin >> examName;
 
                 ifstream answersFile("answers.json");
 
@@ -584,23 +590,23 @@ int main() {
 
                 // Search for the exam name in the JSON object
                 cout << "Answers for " << examName << ":" << endl;
-                bool isfound=false;
+                bool isfound = false;
                 float score;
                 for (auto& answer : answersJson) {
                     if (answer["examName"] == examName) {
-                        isfound=true;
+                        isfound = true;
                         // Print the answers
-                        cout<<"Answers by student"<<answer["student"]<<endl;
+                        cout << "Answers by student"<<answer["student"] << endl;
                         for (auto& question : answer["answers"]) {
                             cout << "Question " << question["questionText"] << ": " << question["answer"] << endl;
                         }
-                        cout<<"enter the score(totall score is "<<answer["totallScore"]<<")"<<endl;
-                        cin>>score;
+                        cout << "enter the score(totall score is " << answer["totallScore"] << ")" << endl;
+                        cin >> score;
                         answer["score"] = score;
                     }
                 }
                 if(!isfound){
-                    cout<<"no answears had saved yet";
+                    cout << "no answears had saved yet";
                     continue;
                 }
                 answersFile.close();
@@ -651,17 +657,17 @@ int main() {
                 file.close();
 
                 int count;
-                cout<<"Enter the count of exam you want to see the average of scores for: "<<endl;
-                cout<<"all Exams created by you"<<endl;
+                cout << "Enter the count of exam you want to see the average of scores for: " << endl;
+                cout << "all Exams created by you" << endl;
                 //diaplay all the exams created by the loggedin teacher
                 for (auto& exam : jsonExam) {
                     if (exam["creator"] == username) {
                         cout << "Exam name: " << exam["name"] << endl;
                     }
                 }
-                cin>>count;
+                cin >> count;
                 cin.ignore();
-                cout<<endl<<"now type the exam names to be choosen"<<endl;
+                cout << endl << "now type the exam names to be chosen" << endl;
 
                 vector<string> examNames;
                 vector<int> ids;
@@ -729,7 +735,7 @@ int main() {
                     for (int i = 0; i < ids.size(); i++) {
                         for (int j = 0; j < 4; j++) {
                             if (studentsList[j].getId() == ids[i]) {
-                                cout<<"rotbe"<<rotbe<<"\tstudent with usename " << studentsList[j].getUserName()<<endl<<"score : "<<scores[i]<<endl;
+                                cout << "rotbe" << rotbe << "\tstudent with usename " << studentsList[j].getUserName() << endl << "score : " << scores[i] << endl;
                             }
                         }
                         rotbe--;
@@ -749,14 +755,13 @@ int main() {
     else{
         while(true){
             cout << endl << "enter proper command number from list bellow" << endl;
-            cout
-                    << "1.See availble Exams\n2.Refer to the history of your exams and register objections to the grade\n3.display the protests answears\n4.exit";
+            cout << "1.See availble Exams\n2.Refer to the history of your exams and register objections to the grade\n3.display the protests answears\n4.exit";
             cout <<endl<< "command : ";
             cin >> command;
             cout<<endl;
             if (command == 1) {
-                //displaying all availble exams to the user and if the teacher has turned off the display mode
-                //that exam wont be aceble here
+                //displaying all available exams to the user and if the teacher has turned off the display mode
+                //that exam won't be aceble here
                 string protect;
                 int protectAccpt;
                 int examnum;
@@ -846,6 +851,7 @@ int main() {
                                     newAnswer["protestTime"] = "";
 
                                     //displaying the exam questions
+									  time *= 60; // time as a second for comparing with timer
                                     for (const auto &question: exam["questions"]) {
                                         cout << " _. " << question["text"] << endl;
                                         if (question["type"] == "test") {
@@ -857,8 +863,23 @@ int main() {
 
                                         // Get the answer from the user
                                         string answer;
+                                        auto start_time = std::chrono::steady_clock::now();
                                         cout << "Enter your answer: "<<endl;
                                         getline(cin, answer);
+                                        auto timer = std::chrono::steady_clock::now()-start_time;
+                                        double timing = std::chrono::duration<double>(timer).count();
+                                       
+                                        if(timing >= time){
+                                            cout<<"Your time is over \nExam finished good luck"<<endl;
+                                            cout<<"Your extra time is :"<<" ";
+                                            timing -= time;
+                                            std::cout<<timing<<endl;
+                                            break;
+                                        } if( timing < time){
+                                        	time -= timing;
+                                            cout<<"Your remaining time is : "<<time;
+                                            continue;
+											}
 
                                         nlohmann::json questionAnswer;
                                         questionAnswer["questionText"] = question["text"];
@@ -866,6 +887,8 @@ int main() {
 
                                         newAnswer["answers"].push_back(questionAnswer);
                                     }
+                                    time /= 60; // return time to minute
+                                    
                                     //ask the student if he/she want to make a protest(اعتراض) on exam
                                     cout << "you can make protect on this exam enter 1 to continue or any other number to skip this part."<<endl;
                                     cin >> protectAccpt;
@@ -877,7 +900,9 @@ int main() {
                                         cout << "write your message";
                                         getline(cin, protect);
                                         newAnswer["protest"] = protect;
-
+                                        auto time = std::chrono::system_clock::now();
+                                        std::time_t now_c = std::chrono::system_clock::to_time_t(time);
+                                        cout<<"Your protest saved in :"<<std::ctime(&now_c);
                                     }
 
                                     answers.push_back(newAnswer);
@@ -898,7 +923,7 @@ int main() {
 
                 }
                 else{
-                    cout<<"There is no availbe Exam to display";
+                    cout << "There is no availbe Exam to display";
                     continue;
                 }
             }
@@ -948,10 +973,10 @@ int main() {
 
                         for (auto& answer : answers) {
                             if (answer["examName"] == historyExams[i] && answer["student"] == loginedId) {
-                                //when the student try to answer the exam deffault value -1 is set for score
+                                //when the student try to answer the exam default value -1 is set for score
                                 // this score will change if the teacher log in and set score for this exam
                                 if(answer["score"]==-1){
-                                    cout<<"the exam creator hadnt set the score";
+                                    cout << "the exam creator hadn't set the score";
                                 }
                                 else{
                                     cout << "Score: " << answer["score"] << endl;
@@ -961,7 +986,7 @@ int main() {
                     }
                 }
                 else{
-                    cout<<"history is empty";
+                    cout << "history is empty";
                     continue;
 
                 }
@@ -979,31 +1004,31 @@ int main() {
                         string protest = obj["protest"];
                         string protestAnswers = obj["protestAnswers"];
                         if (!protest.empty() &&!protestAnswers.empty()) {
-                            cout<<"for Exam"<<obj["examName"]<<endl;
-                            cout<<"your protest"<<protest<<endl;
+                            cout << "for Exam" << obj["examName"] << endl;
+                            cout << "your protest" << protest << endl;
                             cout << "Protest Answer: " << protestAnswers << endl;
                         }
                         else if(!protest.empty() && protestAnswers.empty()){
-                            cout<<"for Exam"<<obj["examName"]<<endl;
-                            cout<<"for protest"<<protest<<endl<<"no answer had sent yet"<<endl;
+                            cout << "for Exam" << obj["examName"] << endl;
+                            cout << "for protest" << protest << endl << "no answer had sent yet" << endl;
                             continue;
                         }
                         else if(protest.empty()){
-                            cout<<"for Exam"<<obj["examName"]<<endl;
-                            cout<<"there is no protest made by you"<<endl;
+                            cout << "for Exam" << obj["examName"] << endl;
+                            cout << "there is no protest made by you" << endl;
                             continue;
 
                         }
                     }
                     else{
-                        cout<<"there is no answer made by your username";
+                        cout << "there is no answer made by your username";
                         continue;
 
                     }
                 }
             }
             else if(command==4){
-                cout<<"Hope To See You Again,Bye:)";
+                cout << "Hope To See You Again,Bye:)";
                 exit(0);
             }
         }
