@@ -140,13 +140,13 @@ public:
         cout << "What Type of Questions your Exam Has:\n1.All Tests\n2.All Writing\n3.Combinatorial\n";
         cin >> enterType;
         cin.ignore();
-        cout<<"For which list of students are you creating this exam??";
+        cout<<"For which list of students are you creating this exam??"<<endl;
         getline(cin, list);
         cout<<"you want to display the exam write after creating it on students panel??(1-yes ,0-No)\n"
-              "you can change the setting later so by choosing the command 6 on your panel";
+              "you can change the setting later so by choosing the command 6 on your panel"<<endl;
         cin>>display;
         cin.ignore();
-        cout<<"what is the totall Score of this exam";
+        cout<<"what is the totall Score of this exam??"<<endl;
         cin>>totallScore;
         cin.ignore();
         // Asking the type of questions will be useful if the exam only consists of tests or written questions
@@ -181,7 +181,6 @@ public:
                 }
             }
         }
-
     }
     //when showExam called some datas about "exam" will be shown and after that on each object of questions
     // the display method will print the "question" datas such as the 4 options ,the question text and answer....
@@ -264,10 +263,10 @@ public:
             ofstream examsFileOut("exams.json");
             examsFileOut << jsonData.dump(4) << endl;
 
-            cout << "Exam saved successfully to exams.json" << endl;
+            cout << "Exam saved successfully" << endl;
         }
         else{
-            cout<<"exma didnt save beacause another exam with the same name exit ,try with anothe name";
+            cout<<"exma didnt save beacause another exam with the same name exist ,try with anothe name";
         }
     }
 };
@@ -465,7 +464,6 @@ int main() {
                 examsFileOut << jsonData.dump(4) << endl;
             }  else if (command == 4) {
                 //add new student to the existing lists
-
                 ifstream ListsFile("lists.json");
                 nlohmann::json jsonData;
                 ListsFile >> jsonData;
@@ -574,6 +572,22 @@ int main() {
             else if(command==7){
                 string examName;
                 //display the students answears
+
+                ifstream examsFile("exams.json");
+                nlohmann::json jsonData;
+                examsFile >> jsonData;
+                if (examsFile.is_open()) {
+                    cout<<"Exames made by you "<<username<<endl;
+                    for (const auto &examData: jsonData) {
+                        //check if the exam creator is the same as the logged in teacher
+                        if (examData["creator"] == username) {
+                            string name = examData["name"];
+                            int numQuestions = examData["numQuestions"];
+
+                            cout << "Exam name: " << name << ", number of questions: " << numQuestions << endl;
+                        }
+                    }
+                }
                 cout<<"For which test do you want to see students' answers?";
                 cin>>examName;
 
@@ -871,12 +885,14 @@ int main() {
                                     cin >> protectAccpt;
                                     cin.ignore();
                                     if (protectAccpt == 1) {
-                                        if(!newAnswer["protest"].empty()){
+                                        if(newAnswer["protest"] != ""){
                                             cout<<"you cant make protest on this exam cause you did once befor";
                                         }
-                                        cout << "write your message";
-                                        getline(cin, protect);
-                                        newAnswer["protest"] = protect;
+                                        else{
+                                            cout << "write your message";
+                                            getline(cin, protect);
+                                            newAnswer["protest"] = protect;
+                                        }
 
                                     }
 
@@ -972,10 +988,11 @@ int main() {
                 nlohmann::json jsonData;
                 file >> jsonData;
                 file.close();
-
+                bool found=false;
                 for (auto& obj : jsonData) {
                     int student = obj["student"];
                     if (student == loginedId) {
+                        found=true;
                         string protest = obj["protest"];
                         string protestAnswers = obj["protestAnswers"];
                         if (!protest.empty() &&!protestAnswers.empty()) {
@@ -995,11 +1012,12 @@ int main() {
 
                         }
                     }
-                    else{
-                        cout<<"there is no answer made by your username";
-                        continue;
 
-                    }
+                }
+                if(!found){
+                    cout<<"there is no answer made by your username";
+                    continue;
+
                 }
             }
             else if(command==4){
